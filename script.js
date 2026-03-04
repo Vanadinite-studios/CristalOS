@@ -56,10 +56,48 @@ const OS = {
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
         this.initDock();
-        document.querySelector('.apple-logo').onclick = () => this.launchApp('about');
+        this.initLogin();
 
-        // Context menu listener (optional)
+        // System logo click for About
+        const systemLogo = document.getElementById('system-logo');
+        if (systemLogo) systemLogo.onclick = () => this.launchApp('about');
+
         document.addEventListener('contextmenu', e => e.preventDefault());
+    },
+
+    // LOGIN SYSTEM
+    initLogin() {
+        const passwordInput = document.getElementById('login-password');
+        const submitBtn = document.getElementById('login-submit');
+        const loginScreen = document.getElementById('login-screen');
+        const desktopWrapper = document.getElementById('desktop-wrapper');
+
+        const attemptLogin = () => {
+            if (passwordInput.value === "1234") {
+                loginScreen.style.opacity = "0";
+                loginScreen.style.transform = "scale(1.1)";
+                setTimeout(() => {
+                    loginScreen.style.display = "none";
+                    desktopWrapper.style.display = "flex";
+                }, 500);
+            } else {
+                this.showLoginError("Mot de passe incorrect");
+            }
+        };
+
+        submitBtn.onclick = attemptLogin;
+        passwordInput.onkeydown = (e) => { if (e.key === 'Enter') attemptLogin(); };
+    },
+
+    showLoginError(msg) {
+        let errorEl = document.querySelector('.login-error');
+        if (!errorEl) {
+            errorEl = document.createElement('p');
+            errorEl.className = 'login-error';
+            document.querySelector('.login-content').appendChild(errorEl);
+        }
+        errorEl.textContent = msg;
+        setTimeout(() => errorEl.remove(), 2000);
     },
 
     updateClock() {
@@ -94,7 +132,7 @@ const OS = {
         windowEl.style.top = (80 + offset) + 'px';
         windowEl.style.left = (150 + offset) + 'px';
         windowEl.style.width = appId === 'about' ? '350px' : (appId === 'terminal' ? '600px' : '800px');
-        windowEl.style.height = appId === 'about' ? '450px' : (appId === 'terminal' ? '400px' : '550px');
+        windowEl.style.height = appId === 'about' ? '450px' : (appId === 'terminal' ? '400px' : (appId === 'settings' ? '450px' : '550px'));
 
         windowEl.innerHTML = `
             <div class="window-header">
@@ -121,7 +159,8 @@ const OS = {
     focusWindow(el) {
         document.querySelectorAll('.window').forEach(w => w.style.zIndex = "10");
         el.style.zIndex = "100";
-        document.querySelector('.active-app-name').textContent = el.querySelector('.window-title').textContent.split(' - ')[0];
+        const titleSpan = el.querySelector('.window-title').textContent;
+        document.querySelector('.active-app-name').textContent = titleSpan.split(' - ')[0];
     },
 
     getAppContent(appId, params, winId) {
@@ -129,14 +168,14 @@ const OS = {
             case 'about':
                 return `
                     <div class="about-mac">
-                        <img src="https://img.icons8.com/fluency/1000/apple-app-store.png" alt="Apple" style="width: 120px;">
+                        <img src="https://img.icons8.com/fluency/1000/crystal.png" alt="Cristal" style="width: 120px;">
                         <h2>CristalOS</h2>
-                        <p>Version 2.0 (Pro)</p>
+                        <p>Version 2.5 (Émeraude)</p>
                         <hr>
-                        <div class="info-row"><span>Processeur</span> <span>Apple M2 Ultra</span></div>
-                        <div class="info-row"><span>Mémoire</span> <span>32 Go RAM</span></div>
-                        <div class="info-row"><span>Graphisme</span> <span>CristalRTX</span></div>
-                        <button class="mac-btn">Rapport Système</button>
+                        <div class="info-row"><span>Processeur</span> <span>Cristal Quantum M3</span></div>
+                        <div class="info-row"><span>Mémoire</span> <span>64 Go RAM</span></div>
+                        <div class="info-row"><span>Système</span> <span>64-bit Core</span></div>
+                        <button class="mac-btn">Vérifier les mises à jour</button>
                     </div>
                 `;
             case 'finder':
@@ -145,7 +184,7 @@ const OS = {
                 return `
                     <div class="safari-content">
                         <div class="url-bar">
-                            <input type="text" value="https://www.google.com" onkeydown="if(event.key==='Enter') this.parentElement.nextElementSibling.src=this.value">
+                            <input type="text" value="https://www.google.com" onkeydown="if(event.key==='Enter') this.parentElement.nextElementSibling.src=this.value.startsWith('http') ? this.value : 'https://' + this.value">
                         </div>
                         <iframe src="https://www.bing.com" style="flex-grow:1; border:none; background:white;"></iframe>
                     </div>
@@ -153,11 +192,11 @@ const OS = {
             case 'terminal':
                 return `
                     <div class="terminal-content" id="term-out-${winId}">
-                        <div class="terminal-line">CristalOS Terminal v1.0</div>
-                        <div class="terminal-line">Tapez 'help' pour la liste des commandes.</div>
+                        <div class="terminal-line">CristalOS Terminal v2.0</div>
+                        <div class="terminal-line">Tapez 'help' pour les commandes.</div>
                         <div class="terminal-input-line">
-                            <span>cristal@mac:~$</span>
-                            <input type="text" class="terminal-input" id="term-in-${winId}">
+                            <span>root@cristal:~$</span>
+                            <input type="text" class="terminal-input" id="term-in-${winId}" autocomplete="off">
                         </div>
                     </div>
                 `;
@@ -165,15 +204,16 @@ const OS = {
                 return `
                     <div class="textedit-content">
                         <div class="textedit-toolbar">
-                            <button class="mac-btn" onclick="OS.saveFile('${winId}', '${params.fileName || 'sans-titre.txt'}')">Enregistrer</button>
+                            <button class="mac-btn" onclick="OS.saveFile('${winId}', '${params.fileName || 'document.txt'}')">Enregistrer</button>
                         </div>
-                        <textarea class="textedit-textarea" id="text-${winId}">${params.content || ""}</textarea>
+                        <textarea class="textedit-textarea" id="text-${winId}" placeholder="Commencez à écrire...">${params.content || ""}</textarea>
                     </div>
                 `;
             case 'settings':
                 return `
                     <div class="settings-content">
-                        <h3>Fond d'écran</h3>
+                        <h3>Personnalisation</h3>
+                        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Choisissez votre fond d'écran préféré.</p>
                         <div class="wallpaper-grid">
                             ${this.wallpapers.map(url => `
                                 <div class="wp-thumb" style="background-image: url('${url}')" onclick="document.getElementById('desktop-wrapper').style.backgroundImage = 'url(${url})'"></div>
@@ -181,22 +221,34 @@ const OS = {
                         </div>
                     </div>
                 `;
+            case 'appstore':
+                return `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center;">
+                        <img src="https://img.icons8.com/fluency/200/apple-app-store.png" style="width:100px; margin-bottom:20px;">
+                        <h3>App Store</h3>
+                        <p>Connexion au serveur Cristal Store...</p>
+                        <div style="width:200px; height:4px; background:#ddd; border-radius:2px; margin-top:20px; overflow:hidden;">
+                            <div style="width:60%; height:100%; background:#007aff; animation: progress 2s infinite linear;"></div>
+                        </div>
+                    </div>
+                    <style>@keyframes progress { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }</style>
+                `;
             default:
-                return `<p>App ${appId} non supportée.</p>`;
+                return `<p>L'application ${appId} est en cours de maintenance.</p>`;
         }
     },
 
-    // FINDER LOGIC
     renderFinderContent() {
         const folders = Object.keys(this.fs.root);
         return `
             <div class="finder-content">
                 <div class="sidebar">
-                    <p>Favoris</p>
+                    <p>Emplacements</p>
                     <ul>
                         <li class="active">Macintosh HD</li>
                         <li>Documents</li>
                         <li>Applications</li>
+                        <li>Réseau</li>
                     </ul>
                 </div>
                 <div class="file-grid">
@@ -212,29 +264,29 @@ const OS = {
     },
 
     openFolder(folder) {
-        console.log("Ouverture du dossier", folder);
-        // Simplified: just show files in Documents for demo
         if (folder === "Documents") {
             const files = this.fs.root["Documents"].children;
             const grid = document.querySelector('.file-grid');
-            grid.innerHTML = Object.keys(files).map(name => `
-                <div class="file-item" ondblclick="OS.launchApp('textedit', {fileName: '${name}', content: '${files[name].content}'})">
-                    <img src="https://img.icons8.com/fluency/100/txt.png">
-                    <span>${name}</span>
-                </div>
-            `).join('');
+            if (grid) {
+                grid.innerHTML = Object.keys(files).map(name => `
+                    <div class="file-item" ondblclick="OS.launchApp('textedit', {fileName: '${name}', content: '${files[name].content}'})">
+                        <img src="https://img.icons8.com/fluency/100/txt.png">
+                        <span>${name}</span>
+                    </div>
+                `).join('');
+            }
         }
     },
 
-    // TERMINAL LOGIC
     initTerminal(winId) {
         const input = document.getElementById(`term-in-${winId}`);
         const output = document.getElementById(`term-out-${winId}`);
+        if (!input) return;
 
         input.focus();
         input.onkeydown = (e) => {
             if (e.key === 'Enter') {
-                const cmd = input.value.trim().toLowerCase();
+                const cmd = input.value.trim();
                 this.executeCommand(cmd, output, winId);
                 input.value = "";
             }
@@ -244,43 +296,51 @@ const OS = {
     executeCommand(cmd, output, winId) {
         const line = document.createElement('div');
         line.className = 'terminal-line';
-        line.innerHTML = `<span>cristal@mac:~$</span> ${cmd}`;
+        line.innerHTML = `<span style="color:#00ff00">root@cristal:~$</span> ${cmd}`;
         output.insertBefore(line, output.lastElementChild);
 
         const response = document.createElement('div');
         response.className = 'terminal-line';
+        const cleanCmd = cmd.toLowerCase().trim();
 
-        if (cmd === 'help') response.textContent = "Commandes: help, ls, clear, date, whoami, neofetch";
-        else if (cmd === 'ls') response.textContent = "Documents  Images  Système  Applications";
-        else if (cmd === 'clear') {
+        if (cleanCmd === 'help') response.textContent = "Commandes: help, ls, clear, date, whoami, neofetch, exit";
+        else if (cleanCmd === 'ls') response.textContent = "Documents/  Images/  Système/  Applications/";
+        else if (cleanCmd === 'clear') {
             output.querySelectorAll('.terminal-line').forEach(l => l.remove());
             return;
         }
-        else if (cmd === 'date') response.textContent = new Date().toLocaleString();
-        else if (cmd === 'whoami') response.textContent = "Utilisateur Cristal";
-        else if (cmd === 'neofetch') {
-            response.innerHTML = `<pre style="color: cyan">
-  _____ _     _ 
- |      |    |  
- |      |    |  
- |____  |____|  
-            </pre> OS: CristalOS v2.0<br>Kernel: WebJS 1.0<br>Uptime: 5 mins`;
+        else if (cleanCmd === 'date') response.textContent = new Date().toLocaleString();
+        else if (cleanCmd === 'whoami') response.textContent = "root";
+        else if (cleanCmd === 'neofetch') {
+            response.innerHTML = `<pre style="color: #ff00ff">
+   ____      _     _       _ 
+  / ___|_ __(_)___| |_ ___| |
+ | |   | '__| / __| __/ _ \\ |
+ | |___| |  | \\__ \\ ||  __/ |
+  \\____|_|  |_|___/\\__\\___|_|
+            </pre> <b>OS</b>: CristalOS v2.5<br><b>Host</b>: BrowserVM x86_64<br><b>Shell</b>: CristalShell 1.2<br><b>Branding</b>: Crystal Fluency Edition`;
         }
-        else if (cmd !== "") response.textContent = `Commande inconnue: ${cmd}`;
+        else if (cleanCmd === 'exit') {
+            document.getElementById(winId).remove();
+            return;
+        }
+        else if (cleanCmd !== "") response.textContent = `sh: command not found: ${cmd}`;
 
-        if (cmd !== "") {
+        if (cleanCmd !== "") {
             output.insertBefore(response, output.lastElementChild);
             output.scrollTop = output.scrollHeight;
         }
     },
 
-    // TEXTEDIT LOGIC
     saveFile(winId, defaultName) {
         const text = document.getElementById(`text-${winId}`).value;
         const name = prompt("Nom du fichier ?", defaultName);
         if (name) {
             this.fs.root["Documents"].children[name] = { type: "file", content: text };
             alert("Fichier enregistré dans Documents !");
+            // Refresh finder if open
+            const finder = document.querySelector('.finder-content');
+            if (finder) this.openFolder("Documents");
         }
     },
 
@@ -293,7 +353,6 @@ const OS = {
             pos4 = e.clientY;
             document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
             document.onmousemove = (e) => {
-                e.preventDefault();
                 pos1 = pos3 - e.clientX;
                 pos2 = pos4 - e.clientY;
                 pos3 = e.clientX;

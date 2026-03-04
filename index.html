@@ -12,11 +12,28 @@
 </head>
 
 <body>
-    <div id="desktop-wrapper">
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="login-content">
+            <div class="user-avatar">
+                <img src="https://img.icons8.com/fluency/200/user-male-circle.png" alt="User">
+            </div>
+            <h2 id="login-username">Utilisateur Cristal</h2>
+            <div class="login-input-group">
+                <input type="password" id="login-password" placeholder="Mot de passe" autofocus>
+                <button id="login-submit">➜</button>
+            </div>
+            <p class="login-hint">Indice : 1234</p>
+        </div>
+    </div>
+
+    <div id="desktop-wrapper" style="display: none;">
         <!-- Top Menu Bar -->
         <header id="top-bar">
             <div class="left-section">
-                <div class="menu-item apple-logo"></div>
+                <div class="menu-item system-logo-container">
+                    <img src="https://img.icons8.com/fluency/10000/crystal.png" alt="CristalOS" id="system-logo">
+                </div>
                 <div class="menu-item active-app-name">Finder</div>
                 <div class="menu-item">Fichier</div>
                 <div class="menu-item">Édition</div>
