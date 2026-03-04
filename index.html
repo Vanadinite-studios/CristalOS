@@ -12,18 +12,43 @@
 </head>
 
 <body>
-    <!-- Login Screen -->
-    <div id="login-screen">
-        <div class="login-content">
-            <div class="user-avatar">
-                <img src="https://img.icons8.com/fluency/200/user-male-circle.png" alt="User">
+    <!-- Premium Auth Window -->
+    <div id="auth-overlay">
+        <div id="auth-window" class="window">
+            <div class="window-header">
+                <div class="traffic-lights">
+                    <div class="light gray"></div>
+                    <div class="light gray"></div>
+                    <div class="light gray"></div>
+                </div>
+                <div class="window-title">CristalOS Auth</div>
             </div>
-            <h2 id="login-username">Utilisateur Cristal</h2>
-            <div class="login-input-group">
-                <input type="password" id="login-password" placeholder="Mot de passe" autofocus>
-                <button id="login-submit">➜</button>
+            <div class="window-content auth-container">
+                <div class="auth-brand">
+                    <img src="https://img.icons8.com/fluency/10000/crystal.png" alt="CristalOS">
+                    <h1>Bienvenue</h1>
+                </div>
+
+                <div id="login-form">
+                    <input type="email" id="auth-email" placeholder="E-mail">
+                    <input type="password" id="auth-password" placeholder="Mot de passe">
+                    <button class="mac-btn-blue" id="btn-login">Se connecter</button>
+                    <p class="auth-toggle">Pas encore de compte ? <span id="to-register">S'inscrire</span></p>
+                </div>
+
+                <div id="register-form" style="display: none;">
+                    <input type="email" id="reg-email" placeholder="E-mail">
+                    <input type="password" id="reg-password" placeholder="Nouveau mot de passe">
+                    <button class="mac-btn-blue" id="btn-register">Créer un compte</button>
+                    <p class="auth-toggle">Déjà un compte ? <span id="to-login">Se connecter</span></p>
+                </div>
+
+                <div id="auth-loader" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+
+                <p id="auth-message"></p>
             </div>
-            <p class="login-hint">Indice : 1234</p>
         </div>
     </div>
 

@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -15,6 +16,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+const auth = getAuth(app);
 
 // OS Module
 const OS = {
@@ -56,7 +58,7 @@ const OS = {
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
         this.initDock();
-        this.initLogin();
+        this.initAuth();
 
         // System logo click for About
         const systemLogo = document.getElementById('system-logo');
@@ -65,39 +67,72 @@ const OS = {
         document.addEventListener('contextmenu', e => e.preventDefault());
     },
 
-    // LOGIN SYSTEM
-    initLogin() {
-        const passwordInput = document.getElementById('login-password');
-        const submitBtn = document.getElementById('login-submit');
-        const loginScreen = document.getElementById('login-screen');
+    // AUTH SYSTEM
+    initAuth() {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const toRegister = document.getElementById('to-register');
+        const toLogin = document.getElementById('to-login');
+        const overlay = document.getElementById('auth-overlay');
         const desktopWrapper = document.getElementById('desktop-wrapper');
+        const messageEl = document.getElementById('auth-message');
+        const loader = document.getElementById('auth-loader');
 
-        const attemptLogin = () => {
-            if (passwordInput.value === "1234") {
-                loginScreen.style.opacity = "0";
-                loginScreen.style.transform = "scale(1.1)";
-                setTimeout(() => {
-                    loginScreen.style.display = "none";
-                    desktopWrapper.style.display = "flex";
-                }, 500);
+        // Toggle forms
+        toRegister.onclick = () => { loginForm.style.display = 'none'; registerForm.style.display = 'block'; };
+        toLogin.onclick = () => { registerForm.style.display = 'none'; loginForm.style.display = 'block'; };
+
+        // Handle Session
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                overlay.style.opacity = "0";
+                setTimeout(() => { overlay.style.display = "none"; desktopWrapper.style.display = "flex"; }, 500);
             } else {
-                this.showLoginError("Mot de passe incorrect");
+                overlay.style.display = "flex";
+                desktopWrapper.style.display = "none";
+            }
+        });
+
+        // Sign In
+        document.getElementById('btn-login').onclick = async () => {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            this.showAuthLoading(true);
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                this.showAuthMessage(error.message, "error");
+            } finally {
+                this.showAuthLoading(false);
             }
         };
 
-        submitBtn.onclick = attemptLogin;
-        passwordInput.onkeydown = (e) => { if (e.key === 'Enter') attemptLogin(); };
+        // Register
+        document.getElementById('btn-register').onclick = async () => {
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            this.showAuthLoading(true);
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                this.showAuthMessage("Compte créé !", "success");
+            } catch (error) {
+                this.showAuthMessage(error.message, "error");
+            } finally {
+                this.showAuthLoading(false);
+            }
+        };
     },
 
-    showLoginError(msg) {
-        let errorEl = document.querySelector('.login-error');
-        if (!errorEl) {
-            errorEl = document.createElement('p');
-            errorEl.className = 'login-error';
-            document.querySelector('.login-content').appendChild(errorEl);
-        }
-        errorEl.textContent = msg;
-        setTimeout(() => errorEl.remove(), 2000);
+    showAuthMessage(msg, type) {
+        const el = document.getElementById('auth-message');
+        el.textContent = msg;
+        el.className = type === "error" ? "error-msg" : "success-msg";
+    },
+
+    showAuthLoading(show) {
+        document.getElementById('auth-loader').style.display = show ? 'block' : 'none';
+        document.getElementById('login-form').style.display = show ? 'none' : (document.getElementById('register-form').style.display === 'none' ? 'block' : 'none');
+        document.getElementById('register-form').style.display = show ? 'none' : (document.getElementById('login-form').style.display === 'none' ? 'block' : 'none');
     },
 
     updateClock() {
