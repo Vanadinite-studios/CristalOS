@@ -383,3 +383,58 @@ html {
     font-family: inherit;
     text-align: center;
 }
+
+/* TERMINAL */
+.terminal-content {
+    background: #1e1e1e;
+    color: #00ff00;
+    font-family: 'Courier New', Courier, monospace;
+    height: 100%;
+    padding: 10px;
+    overflow-y: auto;
+    font-size: 14px;
+}
+
+.terminal-line {
+    margin-bottom: 5px;
+}
+
+.terminal-input-line {
+    display: flex;
+    gap: 8px;
+}
+
+.terminal-input {
+    background: transparent;
+    border: none;
+    color: #00ff00;
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+    flex-grow: 1;
+}
+
+/* TEXTEDIT */
+.textedit-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.textedit-toolbar {
+    padding: 5px 10px;
+    background: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    gap: 10px;
+}
+
+.textedit-textarea {
+    flex-grow: 1;
+    border: none;
+    padding: 15px;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+}

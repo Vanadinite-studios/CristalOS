@@ -18,11 +18,31 @@ const analytics = getAnalytics(app);
 
 // OS Module
 const OS = {
+    fs: {
+        root: {
+            "Documents": {
+                type: "dir", children: {
+                    "hello.txt": { type: "file", content: "Bienvenue sur CristalOS !" },
+                    "notes.txt": { type: "file", content: "Faire les courses." }
+                }
+            },
+            "Images": {
+                type: "dir", children: {
+                    "vacances.jpg": { type: "file", content: "[Image Data]" }
+                }
+            },
+            "Système": { type: "dir", children: {} }
+        },
+        currentPath: ["root"]
+    },
+
     apps: {
         finder: { name: "Finder", icon: "https://img.icons8.com/fluency/200/mac-os.png" },
         safari: { name: "Safari", icon: "https://img.icons8.com/fluency/200/safari.png" },
         settings: { name: "Paramètres", icon: "https://img.icons8.com/fluency/200/settings.png" },
         appstore: { name: "App Store", icon: "https://img.icons8.com/fluency/200/apple-app-store.png" },
+        terminal: { name: "Terminal", icon: "https://img.icons8.com/fluency/200/terminal.png" },
+        textedit: { name: "TextEdit", icon: "https://img.icons8.com/fluency/200/edit-file.png" },
         about: { name: "À propos", icon: "https://img.icons8.com/fluency/200/info.png" }
     },
 
@@ -36,9 +56,10 @@ const OS = {
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
         this.initDock();
-
-        // Apple menu click for About
         document.querySelector('.apple-logo').onclick = () => this.launchApp('about');
+
+        // Context menu listener (optional)
+        document.addEventListener('contextmenu', e => e.preventDefault());
     },
 
     updateClock() {
@@ -49,115 +70,104 @@ const OS = {
     },
 
     initDock() {
-        const dockItems = document.querySelectorAll('.dock-item');
-        dockItems.forEach(item => {
+        document.querySelectorAll('.dock-item').forEach(item => {
             item.addEventListener('click', () => {
                 const appId = item.getAttribute('data-app');
-                this.launchApp(appId);
+                if (appId) this.launchApp(appId);
             });
         });
     },
 
-    launchApp(appId) {
-        console.log(`Lancement de l'application: ${appId}`);
-        this.createWindow(appId);
+    launchApp(appId, params = {}) {
+        this.createWindow(appId, params);
     },
 
-    createWindow(appId) {
-        const app = this.apps[appId] || { name: appId.charAt(0).toUpperCase() + appId.slice(1) };
+    createWindow(appId, params = {}) {
+        const app = this.apps[appId] || { name: appId };
         const container = document.getElementById('window-container');
+        const windowId = `win-${Date.now()}`;
         const windowEl = document.createElement('div');
         windowEl.className = 'window';
+        windowEl.id = windowId;
 
-        // Centering logic roughly
-        const offset = document.querySelectorAll('.window').length * 30;
-        windowEl.style.top = (100 + offset) + 'px';
-        windowEl.style.left = (200 + offset) + 'px';
-        windowEl.style.width = appId === 'about' ? '350px' : '700px';
-        windowEl.style.height = appId === 'about' ? '450px' : '500px';
+        const offset = document.querySelectorAll('.window').length * 25;
+        windowEl.style.top = (80 + offset) + 'px';
+        windowEl.style.left = (150 + offset) + 'px';
+        windowEl.style.width = appId === 'about' ? '350px' : (appId === 'terminal' ? '600px' : '800px');
+        windowEl.style.height = appId === 'about' ? '450px' : (appId === 'terminal' ? '400px' : '550px');
 
         windowEl.innerHTML = `
             <div class="window-header">
                 <div class="traffic-lights">
-                    <div class="light red"></div>
+                    <div class="light red" onclick="document.getElementById('${windowId}').remove()"></div>
                     <div class="light yellow"></div>
                     <div class="light green"></div>
                 </div>
-                <div class="window-title">${app.name}</div>
+                <div class="window-title">${app.name} ${params.fileName ? '- ' + params.fileName : ''}</div>
             </div>
-            <div class="window-content">
-                ${this.getAppContent(appId)}
+            <div class="window-content" id="content-${windowId}">
+                ${this.getAppContent(appId, params, windowId)}
             </div>
         `;
 
         container.appendChild(windowEl);
         this.makeDraggable(windowEl);
-
-        // Close event
-        windowEl.querySelector('.red').onclick = (e) => {
-            e.stopPropagation();
-            windowEl.remove();
-        };
-
-        // Focus on click
-        windowEl.addEventListener('mousedown', () => {
-            this.focusWindow(windowEl);
-        });
-
+        windowEl.addEventListener('mousedown', () => this.focusWindow(windowEl));
         this.focusWindow(windowEl);
+
+        if (appId === 'terminal') this.initTerminal(windowId);
     },
 
     focusWindow(el) {
-        const allWindows = document.querySelectorAll('.window');
-        allWindows.forEach(w => w.style.zIndex = "10");
+        document.querySelectorAll('.window').forEach(w => w.style.zIndex = "10");
         el.style.zIndex = "100";
-
-        // Update top bar to show active app
-        const appTitle = el.querySelector('.window-title').textContent;
-        document.querySelector('.active-app-name').textContent = appTitle;
+        document.querySelector('.active-app-name').textContent = el.querySelector('.window-title').textContent.split(' - ')[0];
     },
 
-    getAppContent(appId) {
+    getAppContent(appId, params, winId) {
         switch (appId) {
             case 'about':
                 return `
                     <div class="about-mac">
                         <img src="https://img.icons8.com/fluency/1000/apple-app-store.png" alt="Apple" style="width: 120px;">
                         <h2>CristalOS</h2>
-                        <p>Version 1.0 (Bêta)</p>
+                        <p>Version 2.0 (Pro)</p>
                         <hr>
-                        <div class="info-row"><span>Processeur</span> <span>3,2 GHz Apple M2</span></div>
-                        <div class="info-row"><span>Mémoire</span> <span>16 Go RAM</span></div>
-                        <div class="info-row"><span>Graphisme</span> <span>Cristal Engine Core</span></div>
-                        <button class="mac-btn" style="margin-top: 20px;">Rapport Système</button>
+                        <div class="info-row"><span>Processeur</span> <span>Apple M2 Ultra</span></div>
+                        <div class="info-row"><span>Mémoire</span> <span>32 Go RAM</span></div>
+                        <div class="info-row"><span>Graphisme</span> <span>CristalRTX</span></div>
+                        <button class="mac-btn">Rapport Système</button>
                     </div>
                 `;
             case 'finder':
-                return `
-                    <div class="finder-content">
-                        <div class="sidebar">
-                            <p>Favoris</p>
-                            <ul>
-                                <li class="active">Bureau</li>
-                                <li>Documents</li>
-                                <li>Téléchargements</li>
-                                <li>Images</li>
-                            </ul>
-                        </div>
-                        <div class="file-grid">
-                            <div class="file-item"><img src="https://img.icons8.com/fluency/100/folder-invoices.png"><span>Documents</span></div>
-                            <div class="file-item"><img src="https://img.icons8.com/fluency/100/image.png"><span>Photo.jpg</span></div>
-                            <div class="file-item"><img src="https://img.icons8.com/fluency/100/pdf.png"><span>CV.pdf</span></div>
-                        </div>
-                    </div>
-                `;
+                return this.renderFinderContent();
             case 'safari':
                 return `
                     <div class="safari-content">
                         <div class="url-bar">
-                            <input type="text" value="https://www.google.com" readonly>
+                            <input type="text" value="https://www.google.com" onkeydown="if(event.key==='Enter') this.parentElement.nextElementSibling.src=this.value">
                         </div>
-                        <iframe src="https://www.bing.com" style="width: 100%; height: calc(100% - 40px); border: none; border-radius: 8px;"></iframe>
+                        <iframe src="https://www.bing.com" style="flex-grow:1; border:none; background:white;"></iframe>
+                    </div>
+                `;
+            case 'terminal':
+                return `
+                    <div class="terminal-content" id="term-out-${winId}">
+                        <div class="terminal-line">CristalOS Terminal v1.0</div>
+                        <div class="terminal-line">Tapez 'help' pour la liste des commandes.</div>
+                        <div class="terminal-input-line">
+                            <span>cristal@mac:~$</span>
+                            <input type="text" class="terminal-input" id="term-in-${winId}">
+                        </div>
+                    </div>
+                `;
+            case 'textedit':
+                return `
+                    <div class="textedit-content">
+                        <div class="textedit-toolbar">
+                            <button class="mac-btn" onclick="OS.saveFile('${winId}', '${params.fileName || 'sans-titre.txt'}')">Enregistrer</button>
+                        </div>
+                        <textarea class="textedit-textarea" id="text-${winId}">${params.content || ""}</textarea>
                     </div>
                 `;
             case 'settings':
@@ -165,15 +175,133 @@ const OS = {
                     <div class="settings-content">
                         <h3>Fond d'écran</h3>
                         <div class="wallpaper-grid">
-                            ${this.wallpapers.map((url, i) => `
+                            ${this.wallpapers.map(url => `
                                 <div class="wp-thumb" style="background-image: url('${url}')" onclick="document.getElementById('desktop-wrapper').style.backgroundImage = 'url(${url})'"></div>
                             `).join('')}
                         </div>
                     </div>
                 `;
             default:
-                return `<p>Contenu de l'application ${appId} en cours de développement...</p>`;
+                return `<p>App ${appId} non supportée.</p>`;
         }
+    },
+
+    // FINDER LOGIC
+    renderFinderContent() {
+        const folders = Object.keys(this.fs.root);
+        return `
+            <div class="finder-content">
+                <div class="sidebar">
+                    <p>Favoris</p>
+                    <ul>
+                        <li class="active">Macintosh HD</li>
+                        <li>Documents</li>
+                        <li>Applications</li>
+                    </ul>
+                </div>
+                <div class="file-grid">
+                    ${folders.map(f => `
+                        <div class="file-item" ondblclick="OS.openFolder('${f}')">
+                            <img src="https://img.icons8.com/fluency/100/folder-invoices.png">
+                            <span>${f}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    openFolder(folder) {
+        console.log("Ouverture du dossier", folder);
+        // Simplified: just show files in Documents for demo
+        if (folder === "Documents") {
+            const files = this.fs.root["Documents"].children;
+            const grid = document.querySelector('.file-grid');
+            grid.innerHTML = Object.keys(files).map(name => `
+                <div class="file-item" ondblclick="OS.launchApp('textedit', {fileName: '${name}', content: '${files[name].content}'})">
+                    <img src="https://img.icons8.com/fluency/100/txt.png">
+                    <span>${name}</span>
+                </div>
+            `).join('');
+        }
+    },
+
+    // TERMINAL LOGIC
+    initTerminal(winId) {
+        const input = document.getElementById(`term-in-${winId}`);
+        const output = document.getElementById(`term-out-${winId}`);
+
+        input.focus();
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                const cmd = input.value.trim().toLowerCase();
+                this.executeCommand(cmd, output, winId);
+                input.value = "";
+            }
+        };
+    },
+
+    executeCommand(cmd, output, winId) {
+        const line = document.createElement('div');
+        line.className = 'terminal-line';
+        line.innerHTML = `<span>cristal@mac:~$</span> ${cmd}`;
+        output.insertBefore(line, output.lastElementChild);
+
+        const response = document.createElement('div');
+        response.className = 'terminal-line';
+
+        if (cmd === 'help') response.textContent = "Commandes: help, ls, clear, date, whoami, neofetch";
+        else if (cmd === 'ls') response.textContent = "Documents  Images  Système  Applications";
+        else if (cmd === 'clear') {
+            output.querySelectorAll('.terminal-line').forEach(l => l.remove());
+            return;
+        }
+        else if (cmd === 'date') response.textContent = new Date().toLocaleString();
+        else if (cmd === 'whoami') response.textContent = "Utilisateur Cristal";
+        else if (cmd === 'neofetch') {
+            response.innerHTML = `<pre style="color: cyan">
+  _____ _     _ 
+ |      |    |  
+ |      |    |  
+ |____  |____|  
+            </pre> OS: CristalOS v2.0<br>Kernel: WebJS 1.0<br>Uptime: 5 mins`;
+        }
+        else if (cmd !== "") response.textContent = `Commande inconnue: ${cmd}`;
+
+        if (cmd !== "") {
+            output.insertBefore(response, output.lastElementChild);
+            output.scrollTop = output.scrollHeight;
+        }
+    },
+
+    // TEXTEDIT LOGIC
+    saveFile(winId, defaultName) {
+        const text = document.getElementById(`text-${winId}`).value;
+        const name = prompt("Nom du fichier ?", defaultName);
+        if (name) {
+            this.fs.root["Documents"].children[name] = { type: "file", content: text };
+            alert("Fichier enregistré dans Documents !");
+        }
+    },
+
+    makeDraggable(el) {
+        const header = el.querySelector('.window-header');
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        header.onmousedown = (e) => {
+            e.preventDefault();
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+            document.onmousemove = (e) => {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+            };
+        };
     },
 
     initDesktopIcons() {
@@ -198,66 +326,20 @@ const OS = {
 
     makeIconDraggable(el) {
         let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-        el.onmousedown = dragMouseDown;
-
-        function dragMouseDown(e) {
-            e = e || window.event;
+        el.onmousedown = (e) => {
             e.preventDefault();
             pos3 = e.clientX;
             pos4 = e.clientY;
-            document.onmouseup = closeDragElement;
-            document.onmousemove = elementDrag;
-        }
-
-        function elementDrag(e) {
-            e = e || window.event;
-            e.preventDefault();
-            pos1 = pos3 - e.clientX;
-            pos2 = pos4 - e.clientY;
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-            el.style.top = (el.offsetTop - pos2) + "px";
-            el.style.left = (el.offsetLeft - pos1) + "px";
-        }
-
-        function closeDragElement() {
-            document.onmouseup = null;
-            document.onmousemove = null;
-        }
-    },
-
-    makeDraggable(el) {
-        const header = el.querySelector('.window-header');
-        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-        header.onmousedown = dragMouseDown;
-
-        function dragMouseDown(e) {
-            e.preventDefault();
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-            document.onmouseup = closeDragElement;
-            document.onmousemove = elementDrag;
-
-            // Bring to front
-            const allWindows = document.querySelectorAll('.window');
-            allWindows.forEach(w => w.style.zIndex = "10");
-            el.style.zIndex = "100";
-        }
-
-        function elementDrag(e) {
-            e.preventDefault();
-            pos1 = pos3 - e.clientX;
-            pos2 = pos4 - e.clientY;
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-            el.style.top = (el.offsetTop - pos2) + "px";
-            el.style.left = (el.offsetLeft - pos1) + "px";
-        }
-
-        function closeDragElement() {
-            document.onmouseup = null;
-            document.onmousemove = null;
-        }
+            document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+            document.onmousemove = (e) => {
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+            };
+        };
     }
 };
 
