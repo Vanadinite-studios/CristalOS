@@ -1,0 +1,227 @@
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-color: #ffffff;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --dock-bg: rgba(255, 255, 255, 0.25);
+    --top-bar-bg: rgba(0, 0, 0, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body,
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--font-family);
+}
+
+#desktop-wrapper {
+    width: 100%;
+    height: 100%;
+    background-image: url('https://images.unsplash.com/photo-1620121692029-d088224efc74?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=80');
+    /* Ventura-like wallpaper */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* TOP BAR */
+#top-bar {
+    width: 100%;
+    height: 28px;
+    background: var(--top-bar-bg);
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 13px;
+    color: var(--text-color);
+    z-index: 1000;
+}
+
+.left-section,
+.right-section {
+    display: flex;
+    gap: 15px;
+}
+
+.menu-item {
+    cursor: default;
+}
+
+.apple-logo {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.active-app-name {
+    font-weight: 700;
+}
+
+/* DESKTOP */
+#desktop {
+    flex-grow: 1;
+    position: relative;
+}
+
+/* DOCK */
+#dock-container {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 2000;
+}
+
+#dock {
+    background: var(--dock-bg);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 10px;
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    pointer-events: auto;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.dock-item {
+    width: 50px;
+    height: 50px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dock-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.dock-item:hover {
+    transform: scale(1.3) translateY(-10px);
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.dock-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    align-self: center;
+}
+
+/* WINDOW SYSTEM */
+.window {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    min-width: 300px;
+    min-height: 200px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.window-header {
+    height: 38px;
+    background: rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    cursor: default;
+}
+
+.traffic-lights {
+    display: flex;
+    gap: 8px;
+}
+
+.light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.red {
+    background-color: #ff5f56;
+    border: 1px solid #e0443e;
+}
+
+.yellow {
+    background-color: #ffbd2e;
+    border: 1px solid #dea123;
+}
+
+.green {
+    background-color: #27c93f;
+    border: 1px solid #1aab29;
+}
+
+.window-title {
+    flex-grow: 1;
+    text-align: center;
+    color: #333;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.window-content {
+    flex-grow: 1;
+    padding: 20px;
+    color: #333;
+}
+
+/* DESKTOP ICONS */
+.desktop-icon {
+    position: absolute;
+    top: 50px;
+    right: 30px;
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: default;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.desktop-icon img {
+    width: 60px;
+    height: 60px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.desktop-icon span {
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+.desktop-icon:hover span {
+    background: rgba(0, 0, 0, 0.4);
+}

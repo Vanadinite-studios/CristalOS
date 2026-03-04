@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CristalOS - Web OS</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for macOS look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script type="module" src="script.js" defer></script>
+</head>
+<body>
+    <div id="desktop-wrapper">
+        <!-- Top Menu Bar -->
+        <header id="top-bar">
+            <div class="left-section">
+                <div class="menu-item apple-logo"></div>
+                <div class="menu-item active-app-name">Finder</div>
+                <div class="menu-item">Fichier</div>
+                <div class="menu-item">Édition</div>
+                <div class="menu-item">Présentation</div>
+                <div class="menu-item">Aller</div>
+            </div>
+            <div class="right-section">
+                <div class="menu-item">WiFi</div>
+                <div class="menu-item">Batterie</div>
+                <div class="menu-item">Recherche</div>
+                <div class="menu-item" id="top-bar-clock">00:00</div>
+            </div>
+        </header>
+
+        <!-- Desktop Grid -->
+        <main id="desktop">
+            <!-- Icons will be generated here -->
+        </main>
+
+        <!-- Application Windows Container -->
+        <div id="window-container"></div>
+
+        <!-- Dock -->
+        <footer id="dock-container">
+            <div id="dock">
+                <div class="dock-item" data-app="finder" title="Finder">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Finder_Icon_macOS_Big_Sur.png" alt="Finder">
+                </div>
+                <div class="dock-item" data-app="safari" title="Safari">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/52/Safari_browser_logo.png" alt="Safari">
+                </div>
+                <div class="dock-item" data-app="settings" title="Paramètres">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ea/Settings_%28macOS%29.png" alt="Settings">
+                </div>
+                <!-- Trash/Bin -->
+                <div class="dock-divider"></div>
+                <div class="dock-item" data-app="trash" title="Corbeille">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Trash_Can_macOS_Big_Sur.png" alt="Trash">
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
