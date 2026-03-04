@@ -19,15 +19,26 @@ const analytics = getAnalytics(app);
 // OS Module
 const OS = {
     apps: {
-        finder: { name: "Finder", icon: "finder_icon.png" },
-        safari: { name: "Safari", icon: "safari_icon.png" },
-        settings: { name: "Paramètres", icon: "settings_icon.png" }
+        finder: { name: "Finder", icon: "https://img.icons8.com/fluency/200/mac-os.png" },
+        safari: { name: "Safari", icon: "https://img.icons8.com/fluency/200/safari.png" },
+        settings: { name: "Paramètres", icon: "https://img.icons8.com/fluency/200/settings.png" },
+        appstore: { name: "App Store", icon: "https://img.icons8.com/fluency/200/apple-app-store.png" },
+        about: { name: "À propos", icon: "https://img.icons8.com/fluency/200/info.png" }
     },
+
+    wallpapers: [
+        'https://images.unsplash.com/photo-1620121692029-d088224efc74?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=80',
+        'https://images.unsplash.com/photo-1477346611705-65d1883cee1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=80',
+        'https://images.unsplash.com/photo-1493246507139-91e8bef99c02?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=80'
+    ],
 
     init() {
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
         this.initDock();
+
+        // Apple menu click for About
+        document.querySelector('.apple-logo').onclick = () => this.launchApp('about');
     },
 
     updateClock() {
@@ -53,13 +64,17 @@ const OS = {
     },
 
     createWindow(appId) {
+        const app = this.apps[appId] || { name: appId.charAt(0).toUpperCase() + appId.slice(1) };
         const container = document.getElementById('window-container');
         const windowEl = document.createElement('div');
         windowEl.className = 'window';
-        windowEl.style.top = '100px';
-        windowEl.style.left = '100px';
-        windowEl.style.width = '600px';
-        windowEl.style.height = '400px';
+
+        // Centering logic roughly
+        const offset = document.querySelectorAll('.window').length * 30;
+        windowEl.style.top = (100 + offset) + 'px';
+        windowEl.style.left = (200 + offset) + 'px';
+        windowEl.style.width = appId === 'about' ? '350px' : '700px';
+        windowEl.style.height = appId === 'about' ? '450px' : '500px';
 
         windowEl.innerHTML = `
             <div class="window-header">
@@ -68,10 +83,10 @@ const OS = {
                     <div class="light yellow"></div>
                     <div class="light green"></div>
                 </div>
-                <div class="window-title">${appId.charAt(0).toUpperCase() + appId.slice(1)}</div>
+                <div class="window-title">${app.name}</div>
             </div>
             <div class="window-content">
-                Contenu de l'application ${appId}...
+                ${this.getAppContent(appId)}
             </div>
         `;
 
@@ -102,11 +117,70 @@ const OS = {
         document.querySelector('.active-app-name').textContent = appTitle;
     },
 
+    getAppContent(appId) {
+        switch (appId) {
+            case 'about':
+                return `
+                    <div class="about-mac">
+                        <img src="https://img.icons8.com/fluency/1000/apple-app-store.png" alt="Apple" style="width: 120px;">
+                        <h2>CristalOS</h2>
+                        <p>Version 1.0 (Bêta)</p>
+                        <hr>
+                        <div class="info-row"><span>Processeur</span> <span>3,2 GHz Apple M2</span></div>
+                        <div class="info-row"><span>Mémoire</span> <span>16 Go RAM</span></div>
+                        <div class="info-row"><span>Graphisme</span> <span>Cristal Engine Core</span></div>
+                        <button class="mac-btn" style="margin-top: 20px;">Rapport Système</button>
+                    </div>
+                `;
+            case 'finder':
+                return `
+                    <div class="finder-content">
+                        <div class="sidebar">
+                            <p>Favoris</p>
+                            <ul>
+                                <li class="active">Bureau</li>
+                                <li>Documents</li>
+                                <li>Téléchargements</li>
+                                <li>Images</li>
+                            </ul>
+                        </div>
+                        <div class="file-grid">
+                            <div class="file-item"><img src="https://img.icons8.com/fluency/100/folder-invoices.png"><span>Documents</span></div>
+                            <div class="file-item"><img src="https://img.icons8.com/fluency/100/image.png"><span>Photo.jpg</span></div>
+                            <div class="file-item"><img src="https://img.icons8.com/fluency/100/pdf.png"><span>CV.pdf</span></div>
+                        </div>
+                    </div>
+                `;
+            case 'safari':
+                return `
+                    <div class="safari-content">
+                        <div class="url-bar">
+                            <input type="text" value="https://www.google.com" readonly>
+                        </div>
+                        <iframe src="https://www.bing.com" style="width: 100%; height: calc(100% - 40px); border: none; border-radius: 8px;"></iframe>
+                    </div>
+                `;
+            case 'settings':
+                return `
+                    <div class="settings-content">
+                        <h3>Fond d'écran</h3>
+                        <div class="wallpaper-grid">
+                            ${this.wallpapers.map((url, i) => `
+                                <div class="wp-thumb" style="background-image: url('${url}')" onclick="document.getElementById('desktop-wrapper').style.backgroundImage = 'url(${url})'"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            default:
+                return `<p>Contenu de l'application ${appId} en cours de développement...</p>`;
+        }
+    },
+
     initDesktopIcons() {
         const desktop = document.getElementById('desktop');
         const icons = [
-            { id: 'finder', name: 'Macintosh HD', icon: 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Finder_Icon_macOS_Big_Sur.png' },
-            { id: 'trash', name: 'Corbeille', icon: 'https://upload.wikimedia.org/wikipedia/commons/d/da/Trash_Can_macOS_Big_Sur.png' }
+            { id: 'finder', name: 'Macintosh HD', icon: 'https://img.icons8.com/fluency/200/mac-os.png' },
+            { id: 'trash', name: 'Corbeille', icon: 'https://img.icons8.com/fluency/200/trash.png' }
         ];
 
         icons.forEach(iconData => {
